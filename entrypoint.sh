@@ -6,8 +6,7 @@ then
     python ocr.py
 else
     echo "Found scan frequency variable, adding crontab"
-    crontab -l | { cat; echo "*/$SCAN_FREQUENCY * * * * python ocr.py"; } | crontab -
-        
+    crontab -l | { cat; echo "*/$SCAN_FREQUENCY * * * * python ocr.py"; } | crontab -  
     echo "Scanning every $SCAN_FREQUENCY minute(s)"
     tail -f
 fi
