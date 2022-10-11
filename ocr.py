@@ -7,6 +7,10 @@ from PIL import Image
 import pytesseract
 import cv2
 import time
+from azure.cognitiveservices.vision.computervision import ComputerVisionClient
+from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
+from azure.cognitiveservices.vision.computervision.models import VisualFeatureTypes
+from msrest.authentication import CognitiveServicesCredentials
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
@@ -19,6 +23,9 @@ logging.getLogger().addHandler(logging.StreamHandler())
 # Arguments [Token] [Database ID]
 NOTION_TOKEN = str(sys.argv[1])
 DATABASE_ID = str(sys.argv[2])
+MICROSOFT_API_KEY = '921558dc1a82403fa0dcaf81d2c0d50a'
+MICROSOFT_ENDPOINT = 'https://notion-automate-ocr.cognitiveservices.azure.com/'
+
 HEADERS = {
     "Authorization": "Bearer " + NOTION_TOKEN,
     "Content-Type": "application/json",
@@ -100,51 +107,73 @@ def get_images_to_scan_in_page(page_id, headers):
 
 def get_text_from_image(image_url):
 
-    current_time_string = str(time.time())
+    computervision_client = ComputerVisionClient(MICROSOFT_ENDPOINT, CognitiveServicesCredentials(MICROSOFT_API_KEY))
 
-    image_data = requests.get(image_url).content
-    with open(current_time_string + '_original.jpg', 'wb') as handler:
-        handler.write(image_data)
+    read_response = computervision_client.read(image_url,  raw=True)
+    read_operation_location = read_response.headers["Operation-Location"]
+    operation_id = read_operation_location.split("/")[-1]
 
-    # load the example image and convert it to grayscale
-    image = cv2.imread(current_time_string + '_original.jpg')
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    while True:
+        read_result = computervision_client.get_read_result(operation_id)
+        if read_result.status not in ['notStarted', 'running']:
+            break
+        time.sleep(1)
 
-    # apply thresholding to preprocess the image
-    gray = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    text = []
 
-    # save the processed image in the /static/uploads directory
-    ofilename = current_time_string + '_processed.jpg'
-    cv2.imwrite(ofilename, gray)
-
-    # perform OCR on the processed image
-    text = pytesseract.image_to_string(Image.open(ofilename))
-
-    os.remove(current_time_string + '_original.jpg')
-    os.remove(current_time_string + '_processed.jpg')
-
+    if read_result.status == OperationStatusCodes.succeeded:
+        for text_result in read_result.analyze_result.read_results:
+            for line in text_result.lines:
+                text.append(line.text)
+            
     return text
 
 
 def add_text_to_block(block_id, text, headers):
-    page_url = f"https://api.notion.com/v1/blocks/{block_id}"
+    page_url = f"https://api.notion.com/v1/blocks/{block_id}/children"
+
+    children_object = []
+
+    for text_block in text:
+        children_object.append(
+            {
+                "object":"block",
+                "type":"paragraph",
+                "paragraph": {
+                    "rich_text" : [
+                        {
+                            "type":"text",
+                            "text": {
+                                "content": text_block
+                            }
+                        }
+                    ]
+                }
+            }
+        )
 
     update_data = {
-        "paragraph": {
-            "rich_text": [{
-                "text": {
-                    "content": text
-                }
-            }]
-        }
+        "children": children_object
     }
 
     data = json.dumps(update_data)
+
+    print("PATCH DATA:" + data)
 
     response = requests.request(
         "PATCH", page_url, headers=headers, data=data)
 
     logging.info(f"Response PATCH request: {response.text}")
+
+    return response.ok
+
+def delete_block(block_id, headers):
+    page_url = f"https://api.notion.com/v1/blocks/{block_id}"
+    
+    response = requests.request(
+        "DELETE", page_url, headers=headers)
+
+    logging.info(f"Response DELETE request: {response.text}")
 
 if __name__ == '__main__':
     notion_content = read_database(DATABASE_ID, HEADERS)
@@ -155,4 +184,7 @@ if __name__ == '__main__':
         for image in images:
             image['text'] = get_text_from_image(image['image_url'])
 
-            add_text_to_block(image['ocr_block_id'], image['text'], HEADERS)
+            success = add_text_to_block(page['id'], image['text'], HEADERS)
+
+            if success:
+                delete_block(image['ocr_block_id'], HEADERS)
