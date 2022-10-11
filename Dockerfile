@@ -1,6 +1,6 @@
 FROM python:3.10
 
-RUN apt-get update
+RUN apt-get update && apt-get -y install cron vim
 
 COPY . /app
 WORKDIR /app

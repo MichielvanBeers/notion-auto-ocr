@@ -1,6 +1,5 @@
 import requests
 import json
-import logging
 import os
 import sys
 import time
@@ -167,9 +166,13 @@ def add_text_to_block(block_id, text, headers):
 
 def delete_block(block_id, headers):
     page_url = f"https://api.notion.com/v1/blocks/{block_id}"
-    
     response = requests.request(
         "DELETE", page_url, headers=headers)
+
+    if not response.ok:
+        print(f"An error occurred when updating the page content.")
+        print(f"Response: {response.text}")
+        sys.exit()
 
     print(f"Response DELETE request: {response.text}")
 
