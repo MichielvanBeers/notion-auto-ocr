@@ -12,5 +12,5 @@ else
     (crontab -l 2>/dev/null; echo "*/$SCAN_FREQUENCY * * * * cd /app; /usr/local/bin/python3 ./ocr.py > /proc/1/fd/1 2>/proc/1/fd/2") | crontab -  
 
     echo "Scanning every $SCAN_FREQUENCY minute(s)"
-    exec "cron -f"
+    service cron start && tail -f /var/log/cron
 fi
