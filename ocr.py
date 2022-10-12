@@ -174,7 +174,7 @@ def delete_block(block_id, headers):
         print(f"Response: {response.text}")
         sys.exit()
 
-    print(f"Response DELETE request: {response.text}")
+    print(f"Deleted 'ocr_text' tag.")
 
 if __name__ == '__main__':
     print(f"[{time.time()}] Running scan..")
