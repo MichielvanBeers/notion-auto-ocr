@@ -9,8 +9,8 @@ then
     python ocr.py
 else
     echo "Found scan frequency variable, adding crontab"
-    (crontab -l 2>/dev/null; echo "*/$SCAN_FREQUENCY * * * * cd /app; /usr/local/bin/python3 ./ocr.py > /proc/1/fd/1 2>/proc/1/fd/2") | crontab -  
+    (crontab -l 2>/dev/null; echo "*/$SCAN_FREQUENCY * * * * cd /app; /usr/local/bin/python3 ./ocr.py > output.log) | crontab -  
 
     echo "Scanning every $SCAN_FREQUENCY minute(s)"
-    service cron start
+    service cron start && tail -f output.log
 fi
