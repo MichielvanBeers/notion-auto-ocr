@@ -177,6 +177,7 @@ def delete_block(block_id, headers):
     print(f"Response DELETE request: {response.text}")
 
 if __name__ == '__main__':
+    print("Starting script..")
     notion_content = read_database(DATABASE_ID, HEADERS)
 
     for page in notion_content:
