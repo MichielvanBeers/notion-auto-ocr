@@ -25,7 +25,7 @@ def read_database(database_id, headers):
     read_url = f"https://api.notion.com/v1/databases/{database_id}/query"
 
     request_body = {
-        "page_size": 100,
+        "page_size": 20,
         "sorts": [
             {
                 "property": "Created",
@@ -39,7 +39,7 @@ def read_database(database_id, headers):
         timestamp_last_pages_request = current_date_time - datetime.timedelta(minutes=(SCAN_FREQUENCY + 1))
         timestamp_last_pages_request_iso = timestamp_last_pages_request.isoformat()
         request_body = {
-            "page_size": 100,
+            "page_size": 20,
             "filter": {
                 "timestamp": "created_time",
                 "created_time": {
@@ -55,6 +55,8 @@ def read_database(database_id, headers):
         }
 
     data = json.dumps(request_body)
+
+    print(data)
 
     res = requests.request("POST", read_url, headers=headers, data=data)
     response_json = res.json()
