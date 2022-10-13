@@ -24,12 +24,20 @@ HEADERS = {
 def read_database(database_id, headers):
     read_url = f"https://api.notion.com/v1/databases/{database_id}/query"
 
-    request_body = {}
+    request_body = {
+        "page_size": 20,
+        "sorts": [
+            {
+                "property": "Created",
+                "direction": "descending"
+            }
+        ]
+    }
 
     if SCAN_FREQUENCY is not None:
-        current_date_time = datetime.datetime.now()
+        current_date_time = datetime.datetime.utcnow()
         timestamp_last_pages_request = current_date_time - \
-            datetime.timedelta(minutes=(SCAN_FREQUENCY + 1))
+            datetime.timedelta(minutes=(int(SCAN_FREQUENCY) + 1))
         timestamp_last_pages_request_iso = timestamp_last_pages_request.isoformat()
         request_body = {
             "page_size": 20,
@@ -41,26 +49,13 @@ def read_database(database_id, headers):
             },
             "sorts": [
                 {
-                    "property": "Created",
-                    "direction": "descending"
-                }
-            ]
-        }
-
-    else:
-        request_body = {
-            "page_size": 20,
-            "sorts": [
-                {
-                    "property": "Created",
+                    "property": "Created time",
                     "direction": "descending"
                 }
             ]
         }
 
     data = json.dumps(request_body)
-
-    print(data)
 
     res = requests.request("POST", read_url, headers=headers, data=data)
     response_json = res.json()
@@ -201,17 +196,11 @@ if __name__ == '__main__':
     print(f"[{time.time()}] Running scan..")
     notion_content = read_database(DATABASE_ID, HEADERS)
 
-    print(notion_content)
-
     for page in notion_content:
         images = get_images_to_scan_in_page(page['id'], HEADERS)
 
-        print(images)
-
         for image in images:
             image['text'] = get_text_from_image(image['image_url'])
-
-            print(image)
 
             success = add_text_to_block(page['id'], image['text'], HEADERS)
 
