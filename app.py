@@ -36,7 +36,7 @@ def read_database(database_id, headers):
 
     if SCAN_FREQUENCY is not None:
         current_date_time = datetime.datetime.now()
-        timestamp_last_pages_request = current_date_time - datetime.timedelta(minutes=SCAN_FREQUENCY + 1)
+        timestamp_last_pages_request = current_date_time - datetime.timedelta(minutes=(SCAN_FREQUENCY + 1))
         timestamp_last_pages_request_iso = timestamp_last_pages_request.isoformat()
         request_body = {
             "page_size": 100,
