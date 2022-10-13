@@ -197,11 +197,17 @@ if __name__ == '__main__':
     print(f"[{time.time()}] Running scan..")
     notion_content = read_database(DATABASE_ID, HEADERS)
 
+    print(notion_content)
+
     for page in notion_content:
         images = get_images_to_scan_in_page(page['id'], HEADERS)
 
+        print(images)
+
         for image in images:
             image['text'] = get_text_from_image(image['image_url'])
+
+            print(image)
 
             success = add_text_to_block(page['id'], image['text'], HEADERS)
 
