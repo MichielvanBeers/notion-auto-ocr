@@ -3,6 +3,7 @@ import json
 import os
 import sys
 import datetime
+import time
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
 from msrest.authentication import CognitiveServicesCredentials
