@@ -11,7 +11,7 @@ NOTION_TOKEN = os.environ['NOTION_TOKEN']
 DATABASE_ID = os.environ['DATABASE_ID']
 MICROSOFT_API_KEY = os.environ['MICROSOFT_API_KEY']
 MICROSOFT_ENDPOINT = os.environ['MICROSOFT_ENDPOINT']
-SCAN_FREQUENCY = os.environ['SCAN_FREQUENCY']
+SCAN_FREQUENCY = os.environ['SCAN_FREQUENCY'] if os.environ['SCAN_FREQUENCY'] != None else None
 
 HEADERS = {
     "Authorization": "Bearer " + NOTION_TOKEN,
@@ -23,22 +23,22 @@ HEADERS = {
 def read_database(database_id, headers):
     read_url = f"https://api.notion.com/v1/databases/{database_id}/query"
 
-    current_date_time = datetime.datetime.now()
-    timestamp_last_pages_request = current_date_time - datetime.timedelta(minutes=SCAN_FREQUENCY + 1)
-    timestamp_last_pages_request_iso = timestamp_last_pages_request.isoformat()
+    time_stamp_filter_json = None
+
+    if SCAN_FREQUENCY != None:
+        current_date_time = datetime.datetime.now()
+        timestamp_last_pages_request = current_date_time - datetime.timedelta(minutes=SCAN_FREQUENCY + 1)
+        timestamp_last_pages_request_iso = timestamp_last_pages_request.isoformat()
+        time_stamp_filter_json = {
+            "timestamp": "created_time",
+            "created_time": {
+                "after": timestamp_last_pages_request_iso
+                }
+                }
 
     request_body = {
         "page_size": 100,
-        "filter": {
-            "and": [
-                {
-                    "timestamp": "created_time",
-                    "created_time": {
-                        "after": timestamp_last_pages_request_iso
-                    }
-                }
-            ]
-        },
+        "filter": time_stamp_filter_json,
         "sorts": [
             {
                 "property": "Created",
