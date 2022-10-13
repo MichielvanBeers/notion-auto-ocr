@@ -34,6 +34,8 @@ def read_database(database_id, headers):
         ]
     }
 
+    print(request_body)
+
     if SCAN_FREQUENCY is not None:
         current_date_time = datetime.datetime.now()
         timestamp_last_pages_request = current_date_time - datetime.timedelta(minutes=(SCAN_FREQUENCY + 1))
