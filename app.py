@@ -2,7 +2,7 @@ import requests
 import json
 import os
 import sys
-import time
+import datetime
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
 from msrest.authentication import CognitiveServicesCredentials
@@ -11,6 +11,7 @@ NOTION_TOKEN = os.environ['NOTION_TOKEN']
 DATABASE_ID = os.environ['DATABASE_ID']
 MICROSOFT_API_KEY = os.environ['MICROSOFT_API_KEY']
 MICROSOFT_ENDPOINT = os.environ['MICROSOFT_ENDPOINT']
+SCAN_FREQUENCY = os.environ['SCAN_FREQUENCY']
 
 HEADERS = {
     "Authorization": "Bearer " + NOTION_TOKEN,
@@ -22,16 +23,20 @@ HEADERS = {
 def read_database(database_id, headers):
     read_url = f"https://api.notion.com/v1/databases/{database_id}/query"
 
+    current_date_time = datetime.datetime.now()
+    timestamp_last_pages_request = current_date_time - datetime.timedelta(minutes=SCAN_FREQUENCY + 1)
+    timestamp_last_pages_request_iso = timestamp_last_pages_request.isoformat()
+
     request_body = {
-        "page_size": 5,
+        "page_size": 100,
         "filter": {
             "and": [
                 {
-                    "property": "Active",
-                    "checkbox": {
-                        "equals": True
+                    "timestamp": "created_time",
+                    "created_time": {
+                        "after": timestamp_last_pages_request_iso
                     }
-                },
+                }
             ]
         },
         "sorts": [
