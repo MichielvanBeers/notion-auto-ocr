@@ -24,22 +24,8 @@ HEADERS = {
 def read_database(database_id, headers):
     read_url = f"https://api.notion.com/v1/databases/{database_id}/query"
 
-    time_stamp_filter_json = None
-
-    if SCAN_FREQUENCY is not None:
-        current_date_time = datetime.datetime.now()
-        timestamp_last_pages_request = current_date_time - datetime.timedelta(minutes=SCAN_FREQUENCY + 1)
-        timestamp_last_pages_request_iso = timestamp_last_pages_request.isoformat()
-        time_stamp_filter_json = {
-            "timestamp": "created_time",
-            "created_time": {
-                "after": timestamp_last_pages_request_iso
-                }
-                }
-
     request_body = {
         "page_size": 100,
-        "filter": time_stamp_filter_json,
         "sorts": [
             {
                 "property": "Created",
@@ -47,6 +33,26 @@ def read_database(database_id, headers):
             }
         ]
     }
+
+    if SCAN_FREQUENCY is not None:
+        current_date_time = datetime.datetime.now()
+        timestamp_last_pages_request = current_date_time - datetime.timedelta(minutes=SCAN_FREQUENCY + 1)
+        timestamp_last_pages_request_iso = timestamp_last_pages_request.isoformat()
+        request_body = {
+            "page_size": 100,
+            "filter": {
+                "timestamp": "created_time",
+                "created_time": {
+                    "after": timestamp_last_pages_request_iso
+                }
+            },
+            "sorts": [
+                {
+                    "property": "Created",
+                    "direction": "descending"
+                }
+            ]
+        }
 
     data = json.dumps(request_body)
 
@@ -107,7 +113,8 @@ def get_images_to_scan_in_page(page_id, headers):
 
 def get_text_from_image(image_url):
 
-    computervision_client = ComputerVisionClient(MICROSOFT_ENDPOINT, CognitiveServicesCredentials(MICROSOFT_API_KEY))
+    computervision_client = ComputerVisionClient(
+        MICROSOFT_ENDPOINT, CognitiveServicesCredentials(MICROSOFT_API_KEY))
     read_response = computervision_client.read(image_url,  raw=True)
     read_operation_location = read_response.headers["Operation-Location"]
     operation_id = read_operation_location.split("/")[-1]
@@ -126,7 +133,7 @@ def get_text_from_image(image_url):
             for line in text_result.lines:
                 print(f'Found text: {line.text}')
                 text.append(line.text)
-            
+
     return text
 
 
@@ -138,12 +145,12 @@ def add_text_to_block(block_id, text, headers):
     for text_block in text:
         children_object.append(
             {
-                "object":"block",
-                "type":"paragraph",
+                "object": "block",
+                "type": "paragraph",
                 "paragraph": {
-                    "rich_text" : [
+                    "rich_text": [
                         {
-                            "type":"text",
+                            "type": "text",
                             "text": {
                                 "content": text_block
                             }
@@ -165,10 +172,11 @@ def add_text_to_block(block_id, text, headers):
         print(f"An error occurred when updating the page content.")
         print(f"Response: {data}")
         sys.exit()
-    
+
     print("Succesfully added the text to the page.")
 
     return response.ok
+
 
 def delete_block(block_id, headers):
     page_url = f"https://api.notion.com/v1/blocks/{block_id}"
@@ -181,6 +189,7 @@ def delete_block(block_id, headers):
         sys.exit()
 
     print(f"Deleted 'ocr_text' tag.")
+
 
 if __name__ == '__main__':
     print(f"[{time.time()}] Running scan..")
