@@ -35,6 +35,7 @@ def read_database(database_id, headers):
     }
 
     print(request_body)
+    print(SCAN_FREQUENCY)
 
     if SCAN_FREQUENCY is not None:
         current_date_time = datetime.datetime.now()
@@ -55,6 +56,8 @@ def read_database(database_id, headers):
                 }
             ]
         }
+
+        print(request_body)
 
     data = json.dumps(request_body)
 
