@@ -24,22 +24,12 @@ HEADERS = {
 def read_database(database_id, headers):
     read_url = f"https://api.notion.com/v1/databases/{database_id}/query"
 
-    request_body = {
-        "page_size": 20,
-        "sorts": [
-            {
-                "property": "Created",
-                "direction": "descending"
-            }
-        ]
-    }
-
-    print(request_body)
-    print(SCAN_FREQUENCY)
+    request_body = {}
 
     if SCAN_FREQUENCY is not None:
         current_date_time = datetime.datetime.now()
-        timestamp_last_pages_request = current_date_time - datetime.timedelta(minutes=(SCAN_FREQUENCY + 1))
+        timestamp_last_pages_request = current_date_time - \
+            datetime.timedelta(minutes=(SCAN_FREQUENCY + 1))
         timestamp_last_pages_request_iso = timestamp_last_pages_request.isoformat()
         request_body = {
             "page_size": 20,
@@ -57,7 +47,16 @@ def read_database(database_id, headers):
             ]
         }
 
-        print(request_body)
+    else:
+        request_body = {
+            "page_size": 20,
+            "sorts": [
+                {
+                    "property": "Created",
+                    "direction": "descending"
+                }
+            ]
+        }
 
     data = json.dumps(request_body)
 
