@@ -28,7 +28,7 @@ def read_database(database_id, headers):
         "page_size": 20,
         "sorts": [
             {
-                "property": "Created",
+                "property": "Created time",
                 "direction": "descending"
             }
         ]
