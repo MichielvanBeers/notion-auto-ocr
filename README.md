@@ -40,6 +40,9 @@ services:
 * **MICROSOFT_API_KEY**: Key to access the Microsofy Computer Vision API
 * **MICROSOFT_ENDPOINT**: Url of your API end-point. Can be retrieved from the Azure Portal
 * **SCAN_FREQUENCY**: Optional parameter to set the frequency of scanning for new images to parse. Leave out to do a single run (recommended for testing)
+
+## Usage
+The script checks if it can find the 'ocr_text' text under an image. If it does, it will send the content of the image to Microsoft OCR API and add the result at the end of the current document. When the 'SCAN_FREQUENCY' environment variable is set, it will check if there are any new pages added since the last scan (through the use of setting timestamps).
     
 ## Creating a Microsoft API key
 This section assumes that you already have a Microsoft Azure account. To create your (free) API resource, take the following steps:
