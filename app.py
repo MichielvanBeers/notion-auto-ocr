@@ -12,6 +12,7 @@ DATABASE_ID = os.environ['DATABASE_ID']
 MICROSOFT_API_KEY = os.environ['MICROSOFT_API_KEY']
 MICROSOFT_ENDPOINT = os.environ['MICROSOFT_ENDPOINT']
 SCAN_FREQUENCY = os.environ['SCAN_FREQUENCY'] if os.environ['SCAN_FREQUENCY'] is not None else None
+SCAN_FREQUENCY = os.environ['SCAN_FREQUENCY'] if 'SCAN_FREQUENCY' in os.environ else None
 
 HEADERS = {
     "Authorization": "Bearer " + NOTION_TOKEN,
