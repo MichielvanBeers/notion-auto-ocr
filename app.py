@@ -11,7 +11,7 @@ NOTION_TOKEN = os.environ['NOTION_TOKEN']
 DATABASE_ID = os.environ['DATABASE_ID']
 MICROSOFT_API_KEY = os.environ['MICROSOFT_API_KEY']
 MICROSOFT_ENDPOINT = os.environ['MICROSOFT_ENDPOINT']
-SCAN_FREQUENCY = os.environ['SCAN_FREQUENCY'] if os.environ['SCAN_FREQUENCY'] != None else None
+SCAN_FREQUENCY = os.environ['SCAN_FREQUENCY'] if os.environ['SCAN_FREQUENCY'] is not None else None
 
 HEADERS = {
     "Authorization": "Bearer " + NOTION_TOKEN,
@@ -25,7 +25,7 @@ def read_database(database_id, headers):
 
     time_stamp_filter_json = None
 
-    if SCAN_FREQUENCY != None:
+    if SCAN_FREQUENCY is not None:
         current_date_time = datetime.datetime.now()
         timestamp_last_pages_request = current_date_time - datetime.timedelta(minutes=SCAN_FREQUENCY + 1)
         timestamp_last_pages_request_iso = timestamp_last_pages_request.isoformat()
