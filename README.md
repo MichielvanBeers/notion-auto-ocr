@@ -3,7 +3,8 @@
 
 This project lets you add text recognition to your Notion through the use of the Microsoft Vision API and Docker.
 
-![gif of automatic text recognition in Notion](https://i.imgur.com/zYBe4r3.gif)
+![gif of automatic text recognition by paragraph in Notion](https://i.imgur.com/zYBe4r3.gif)
+![gif of automatic text recognition by caption in Notion - From Marc GUYARD](https://imgur.com/a/yraoeA3)
 ## Preconditions
 To get started, you need the following:
 * Notion account: https://www.notion.so/
