@@ -243,15 +243,57 @@ def replace_caption_in_image(image, headers):
     """
     page_url = f"https://api.notion.com/v1/blocks/{image['ocr_block_id']}"
 
-    text_string = image['caption'].replace("ocr_text", "\n*********************\n" + "\n".join(image['text']) + "\n*********************\n")
-    caption_text = {
-        "type": "text", 
-        "text": { "content": text_string},
-        "plain_text": text_string
-    }
+    full_text = "\n".join(image['text'])
+    text_length = len(full_text)
 
-    image['caption_full_content'].pop(image['caption_index'])
-    image['caption_full_content'].insert(image['caption_index'], caption_text)
+    ocr_text_position = image['caption'].replace("\n","").rfind("ocr_text")
+    if ocr_text_position == 0:
+        base_index = image["caption_index"]
+    else:
+        base_index = image["caption_index"]+1
+
+    if text_length > 2000:
+        start_search = 0
+        search_limit = 1999
+        split_array = []
+        split_array.append("\n*********************\n")
+        while start_search < text_length:
+            end_search = start_search + search_limit if start_search + search_limit <= text_length else text_length
+            number_of_remaining_characters = text_length - start_search
+            if number_of_remaining_characters > 2000:
+                space_position = full_text.rfind(" ", start_search, end_search)
+                split_array.append(full_text[start_search:space_position])
+                start_search = space_position + 1
+            else:
+                split_array.append(full_text[start_search:text_length])
+                start_search = text_length
+        split_array.append("\n*********************")
+        image["caption_full_content"][image["caption_index"]]["text"]["content"] = image["caption_full_content"][image["caption_index"]]["text"]["content"].replace("ocr_text","")
+        image["caption_full_content"][image["caption_index"]]["plain_text"] = image["caption_full_content"][image["caption_index"]]["plain_text"].replace("ocr_text","")
+        for text in split_array:
+            caption_text = {
+                "type": "text", 
+                "text": { "content": text},
+                "plain_text": text
+            }
+            image['caption_full_content'].insert(base_index, caption_text)
+            base_index += 1
+        
+        
+    else:
+        image["caption_full_content"][image["caption_index"]]["text"]["content"] = image["caption_full_content"][image["caption_index"]]["text"]["content"].replace("ocr_text","")
+        image["caption_full_content"][image["caption_index"]]["plain_text"] = image["caption_full_content"][image["caption_index"]]["plain_text"].replace("ocr_text","")
+        
+        split_array = ["\n*********************\n", "\n".join(image['text']), "\n*********************\n"]
+
+        for text in split_array:
+            caption_text = {
+                "type": "text", 
+                "text": { "content": text},
+                "plain_text": text
+            }
+            image['caption_full_content'].insert(base_index, caption_text)
+            base_index += 1
 
     update_data = {
         "image": {
@@ -342,17 +384,23 @@ if __name__ == '__main__':
 
     for page in notion_content:
         images = get_images_to_scan_in_page(page['id'], HEADERS)
+        ocr_block_failed = 0
 
         for image in images:
+            print("OCR Failed : ", ocr_block_failed)
             image['text'] = get_text_from_image(image['image_url'])
             
             if image['caption'] is None:
                 success = add_text_to_block(page['id'], image['text'], HEADERS)
                 if success:
                     delete_block(image['ocr_block_id'], HEADERS)
-                    unset_ocr_parsing(page['id'], HEADERS)
+                else:
+                    ocr_block_failed += 1
                 
             else:
                 success = replace_caption_in_image(image, HEADERS)
-                if success:
-                    unset_ocr_parsing(page['id'], HEADERS)
+                if success == False:
+                    ocr_block_failed += 1
+        
+        if ocr_block_failed == 0:
+            unset_ocr_parsing(page['id'], HEADERS)
