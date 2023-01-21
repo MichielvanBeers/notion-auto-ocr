@@ -23,7 +23,7 @@ HEADERS = {
     "Notion-Version": "2022-06-28"
 }
 
-def get_scan_requestBody():
+def get_scan_request_body():
     """
     > The function returns a request body for the `/pages` endpoint based on the `SCAN_METHOD` parameter
     """
@@ -70,7 +70,7 @@ def get_scan_requestBody():
                     ]
                 }
         case _:
-            print(f"Scan method parameter is invalid. Valid values are checkbox or createtime. You have define", SCAN_METHOD)
+            print(f"Scan method parameter is invalid. Valid values are checkbox or createtime. You have defined", SCAN_METHOD)
             sys.exit()
     
     return request_body
@@ -86,7 +86,7 @@ def read_database(database_id, headers):
     """
     read_url = f"https://api.notion.com/v1/databases/{database_id}/query"
 
-    request_body = get_scan_requestBody()
+    request_body = get_scan_request_body()
 
     data = json.dumps(request_body)
 
@@ -139,10 +139,10 @@ def get_images_to_scan_in_page(page_id, headers):
     for index, block in enumerate(results):
         if block['type'] == 'image':
             if block['image']['caption']:
-                for indexCaption, caption in enumerate(block['image']['caption']):
+                for index_caption, caption in enumerate(block['image']['caption']):
                     if caption['plain_text'] and 'ocr_text' in caption['plain_text'].split('\n'):
-                        caption_index = indexCaption
-                        caption_text = block['image']['caption'][indexCaption]['plain_text']
+                        caption_index = index_caption
+                        caption_text = block['image']['caption'][index_caption]['plain_text']
                         ocr_enable = True
 
 
