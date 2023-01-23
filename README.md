@@ -66,6 +66,10 @@ This section assumes that you already have a Microsoft Azure account. To create 
 7. Click `Review + create`
 
 ## Acknowledgements
-
 - This project is heavily inspired by [yannick-cw/notion-ocr](https://github.com/yannick-cw/notion-ocr)
 - Addition of SCAN_METHOD and all replacement in image caption has been developed by [Marc GUYARD](https://github.com/mguyard)
+
+## To-do
+- Refactor to OOB setup and different files for easier maintenance
+- Research possibility into making standalone executable using [PyInstaller](https://pyinstaller.org/en/stable/)
+- Research possibility to integrate into [Notion-Enhancer](https://notion-enhancer.github.io/)
