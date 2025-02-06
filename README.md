@@ -35,7 +35,8 @@ services:
       - MICROSOFT_API_KEY=9834023jdsadlawdkwn
       - MICROSOFT_ENDPOINT=https://[YOUR_NAME].cognitiveservices.azure.com/
       - SCAN_METHOD=checkbox 
-      - SCAN_FREQUENCY=15 # Optional 
+      - SCAN_FREQUENCY=15 # Optional
+      - DEBUG=True #Optional
 ```
 
 ### Environment variables
@@ -45,6 +46,7 @@ services:
 * **MICROSOFT_ENDPOINT**: Url of your API end-point. Can be retrieved from the Azure Portal
 * **SCAN_METHOD**: Method used to scan page including new image to parse. Valid value is checkbox or createtime
 * **SCAN_FREQUENCY**: Optional parameter to set the frequency of scanning for new images to parse. Leave out to do a single run (recommended for testing)
+* **DEBUG**: Optional parameter to enable debug logs. Only for debuging purpose
 
 ## Usage
 The script checks if it can find the 'ocr_text' text in image caption or under an image. If it does, it will send the content of the image to Microsoft OCR API and replace the 'ocr_text' by the result in caption or add the result at the end of the current document. When the 'SCAN_FREQUENCY' environment variable is set, it will check if there are any new pages added since the last scan (through the use of setting timestamps).

@@ -14,6 +14,7 @@ MICROSOFT_API_KEY = os.environ['MICROSOFT_API_KEY']
 MICROSOFT_ENDPOINT = os.environ['MICROSOFT_ENDPOINT']
 SCAN_FREQUENCY = os.environ['SCAN_FREQUENCY'] if 'SCAN_FREQUENCY' in os.environ else None
 SCAN_METHOD = os.environ['SCAN_METHOD'].lower() # checkbox or createtime
+DEBUG = os.environ['DEBUG'].lower() == 'true' if 'DEBUG' in os.environ else False
 
 # This is a dictionary that contains the headers that will be sent with every request to the Notion
 # API.
@@ -73,6 +74,9 @@ def get_scan_request_body():
             print(f"Scan method parameter is invalid. Valid values are checkbox or createtime. You have defined", SCAN_METHOD)
             sys.exit()
     
+    if DEBUG:
+        print("Page Request Body:")
+        print(json.dumps(request_body, indent=4))
     return request_body
 
 
@@ -103,16 +107,20 @@ def read_database(database_id, headers):
     if pages == []:
         print("The query didn't match any results")
 
+    if DEBUG:
+        print("Pages to Analyze:")
+        print(json.dumps(pages, indent=4))
     return pages
 
 
-def get_images_to_scan_in_page(page_id, headers):
+def get_images_to_scan_in_page(page_id, headers, sub_block=False):
     """
     It gets all the images in a page, and checks if the image has a caption with the text `ocr_text` in
     it (paragraph or caption). If it does, it will be added to the list of images to be scanned
     
     :param page_id: The ID of the page you want to scan for images
     :param headers: The headers that you need to pass to the API
+    :param sub_block: A boolean value that indicates if the function is being called recursively
     :return: A list of dictionaries. Each dictionary contains the following keys:
         - image_url: The URL of the image to be scanned
         - ocr_block_id: The ID of the block that contains the text to be replaced
@@ -137,6 +145,15 @@ def get_images_to_scan_in_page(page_id, headers):
     image_blocks = []
 
     for index, block in enumerate(results):
+        if DEBUG:
+            print(f"Analyzing Block: {block['id']} - {block['type']}")
+        if block['has_children']:
+            if DEBUG:
+                print(f"Block {block['id']} has children. Running Children Analysis...")
+            image_blocks_content = get_images_to_scan_in_page(block['id'], headers, sub_block=True)
+            if DEBUG:
+                print(f"Content: {image_blocks_content}")
+            image_blocks.extend(image_blocks_content)
         if block['type'] == 'image':
             if block['image']['caption']:
                 for index_caption, caption in enumerate(block['image']['caption']):
@@ -169,10 +186,12 @@ def get_images_to_scan_in_page(page_id, headers):
                             image['ocr'] = True
                             image['ocr_block_id'] = block['id']
 
-    ocr_image_blocks = filter(
-        lambda image_block: image_block['ocr'], image_blocks)
-
-    return ocr_image_blocks
+    if sub_block:
+        return image_blocks
+    else:
+        ocr_image_blocks = filter(
+            lambda image_block: image_block['ocr'], image_blocks)
+        return ocr_image_blocks
 
 
 def get_text_from_image(image_url):
