@@ -102,6 +102,14 @@ When `SCAN_FREQUENCY` is set the container loops indefinitely, rescanning at the
 | `latest` / `v2` | C# .NET 10 | Current release — supports Azure and IronOCR |
 | `v1` | Python 3.10 | Legacy — Azure only, no new features |
 
+## Release policy
+
+- Stable releases use tags like `v2.0.0` (no prerelease suffix).
+- Beta or prerelease builds use tags like `v2.0.0-beta.1`.
+- Docker `latest` is published only from stable tags.
+- Prerelease tags never update Docker `latest`.
+- Pushes to `master` do not publish Docker images directly; tag pushes control publishing.
+
 ## Creating a Microsoft API key
 
 This section assumes you already have a Microsoft Azure account.
