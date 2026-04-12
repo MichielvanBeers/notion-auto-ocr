@@ -164,12 +164,19 @@ Potential documentation additions:
 
 ### Progress Snapshot (2026-04-12)
 
-- Step 1 status: Completed
+- Step 1 status: Completed (legacy Python files removed; branch restructured)
 - Step 2 status: Completed
 - Step 3 status: Completed (workflow split is in place)
 - Step 4 status: Not started
-- Step 5 status: Partial (test gate is active; platform-specific runtime gates still need explicit CI enforcement)
+- Step 5 status: Partial (unit tests green; beta image published as v2.0.0-beta.1; Linux x64 server validation in progress)
 - Step 6 status: Pending decision (only needed if Apple Silicon Docker F5 parity is a hard requirement)
+
+### Branch and release structure
+
+- `master` — Python v1 stable. Docker `latest` publishes from here.
+- `v2-dev` — .NET v2 development. All new work happens here.
+- `v2.0.0-beta.1` tag — beta Docker image for Linux x64 server validation.
+- Promotion path: validate beta on server → merge `v2-dev` into `master` → tag `v2.0.0` → CI publishes stable `latest`.
 
 ### Step 1: Re-baseline the repo narrative (Completed)
 
@@ -182,6 +189,8 @@ Completed evidence:
 - Root Dockerfile is now a simple .NET multi-stage build.
 - README reflects the .NET runtime and provider model.
 - Plan narrative is centered on runtime support, not language migration.
+- Legacy Python files (`app.py`, `requirements.txt`, `entrypoint.sh`) removed from v2-dev.
+- Stale artifacts (`output.log`, `BETA-LINUX-X64-ROLLOUT.md`) removed.
 
 ### Step 2: Define official IronOCR platform support (Completed)
 
@@ -238,12 +247,13 @@ Current evidence:
 
 ## Next Actions
 
-1. Publish a beta image tag and validate IronOCR end-to-end on a Linux x64 server.
-2. Resolve the package-reference strategy in the app project to avoid cross-platform runtime contamination during debug flows.
-3. Add explicit CI or scripted gates for IronOCR Linux x64 container validation (not only unit tests).
-4. Add a documented native macOS ARM IronOCR smoke-test command sequence and expected output.
-5. Keep Apple Silicon Docker F5 labeled experimental until a reproducible green validation exists.
-6. If F5 parity becomes mandatory, produce and share a minimal vendor repro package for escalation.
+1. **Validate beta on Linux x64 server** — `docker pull michielvanbeers/notion-auto-ocr:v2.0.0-beta.1` and run IronOCR smoke test. (In progress)
+2. **Promote to stable** — once server validation passes, merge `v2-dev` into `master`, tag `v2.0.0`, and let CI publish stable `latest`.
+3. Resolve the package-reference strategy to avoid cross-platform runtime contamination during debug flows.
+4. Add explicit CI or scripted gates for IronOCR Linux x64 container validation (not only unit tests).
+5. Add a documented native macOS ARM IronOCR smoke-test command sequence and expected output.
+6. Keep Apple Silicon Docker F5 labeled experimental until a reproducible green validation exists.
+7. If F5 parity becomes mandatory, produce and share a minimal vendor repro package for escalation.
 
 ## Open Questions
 
