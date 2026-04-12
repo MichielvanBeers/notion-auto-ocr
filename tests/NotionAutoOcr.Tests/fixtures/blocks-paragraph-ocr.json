@@ -1,0 +1,23 @@
+{
+  "results": [
+    {
+      "id": "block-image-para",
+      "type": "image",
+      "has_children": false,
+      "image": {
+        "caption": [],
+        "file": { "url": "https://example.com/image-para.png" }
+      }
+    },
+    {
+      "id": "block-ocr-para",
+      "type": "paragraph",
+      "has_children": false,
+      "paragraph": {
+        "rich_text": [
+          { "plain_text": "ocr_text" }
+        ]
+      }
+    }
+  ]
+}

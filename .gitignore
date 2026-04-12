@@ -1,2 +1,40 @@
 *.jpg
 launch.json
+
+# .NET build output
+bin/
+obj/
+out/
+publish/
+
+# Visual Studio / Rider
+*.user
+*.suo
+.vs/
+.idea/
+*.DotSettings.user
+
+# dotnet publish
+/src/NotionAutoOcr/bin/
+/src/NotionAutoOcr/obj/
+/tests/NotionAutoOcr.Tests/bin/
+/tests/NotionAutoOcr.Tests/obj/
+
+# Secrets / local config — never commit these
+.env
+.env.local
+.env.*
+!.env.example
+docker-compose*.yml
+
+# macOS
+.DS_Store
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# Crash dumps and debug artifacts
+*.core
+qemu_dotnet_*.core
+core

@@ -1,30 +1,65 @@
 
 # Notion automated text recognition
 
-This project lets you add text recognition to your Notion through the use of the Microsoft Vision API and Docker.
+This project adds OCR to your Notion pages using Docker. It supports two OCR backends: **Microsoft Azure Computer Vision** and **IronOCR** (sponsored by [IronSoftware](https://ironsoftware.com/)).
 
 ![gif of automatic text recognition by paragraph in Notion](https://i.imgur.com/zYBe4r3.gif)
 ![gif of automatic text recognition by caption in Notion - From Marc GUYARD](https://i.imgur.com/jl3w1Ji.gif)
 
 ## Preconditions
-To get started, you need the following:
-* Notion account: https://www.notion.so/
-* Notion integration and API key: https://developers.notion.com/docs/getting-started
-* The ID of a [Notion database](https://developers.notion.com/docs/working-with-databases) that has the `Created time` or `OCR Parsing` (checkbox) field (see Properties > Advanced)
-* Microsoft Azure account: https://azure.microsoft.com/en-gb/free/cognitive-services/
-* Microsoft Computer Vision API key (see [below](#creating-a-microsoft-api-key))
+
+* Notion account and an integration API key: https://developers.notion.com/docs/getting-started
+* A [Notion database](https://developers.notion.com/docs/working-with-databases) with the `Created time` or `OCR Parsing` (checkbox) property
+* **Azure** (default): Microsoft Azure account with a Computer Vision resource (see [below](#creating-a-microsoft-api-key))
+* **IronOCR**: An [IronOCR license key](https://ironsoftware.com/csharp/ocr/licensing/)
 
 ## Installation
 
-This project can installed using [Docker](https://docs.docker.com/get-docker/) or [Docker Compose](https://docs.docker.com/compose/).
+### Docker example — Azure (default)
+```sh
+docker run --name notion-ocr \
+  -e NOTION_TOKEN=secret_12345678 \
+  -e DATABASE_ID=d82973h2kwldj20239e1 \
+  -e MICROSOFT_API_KEY=9834023jdsadlawdkwn \
+  -e MICROSOFT_ENDPOINT=https://[YOUR_NAME].cognitiveservices.azure.com/ \
+  -e SCAN_METHOD=checkbox \
+  -e SCAN_FREQUENCY=15 \
+  michielvanbeers/notion-auto-ocr
+```
 
-### Docker example
-`$ docker run --name some-name-for-your-container -e NOTION_TOKEN=secret_12345678 -e DATABASE_ID=d82973h2kwldj20239e1 -e MICROSOFT_API_KEY=9834023jdsadlawdkwn -e MICROSOFT_ENDPOINT=https://[YOUR_NAME].cognitiveservices.azure.com/ -e SCAN_METHOD=checkbox -e SCAN_FREQUENCY=15 michielvanbeers/notion-auto-ocr`
+### Docker example — IronOCR
+```sh
+docker run --name notion-ocr \
+  --platform linux/amd64 \
+  -e NOTION_TOKEN=secret_12345678 \
+  -e DATABASE_ID=d82973h2kwldj20239e1 \
+  -e OCR_PROVIDER=ironocr \
+  -e IRONOCR_LICENSE_KEY=IRONOCR-LICENSEKEY-12345 \
+  -e SCAN_METHOD=checkbox \
+  -e SCAN_FREQUENCY=15 \
+  michielvanbeers/notion-auto-ocr
+```
 
-### Docker compose example
+On Apple Silicon hosts, IronOCR container runs are supported via Linux x64 containers (`--platform linux/amd64`). Native host execution (`dotnet run`) is the preferred IronOCR development loop.
+
+## Support matrix
+
+| Host | Execution mode | Azure | IronOCR | Status |
+|---|---|---|---|---|
+| macOS ARM | Native (`dotnet run`) | Yes | Yes | Supported |
+| macOS ARM | VS Code Docker F5 | Yes | Not yet reliable | Experimental |
+| macOS ARM | Docker/Compose targeting Linux x64 | Yes | Yes | Supported |
+| Linux x64 | Docker/Compose/CI | Yes | Yes | Primary container target |
+| Linux ARM64 | Docker/Compose/CI | Yes | No validated IronOCR support | Unsupported for IronOCR |
+
+### Recommended IronOCR workflows
+
+1. Use native execution on Apple Silicon for day-to-day IronOCR debugging.
+2. Validate IronOCR container behavior on Linux x64 (or `linux/amd64` from Apple Silicon).
+3. Treat VS Code Docker F5 for IronOCR on Apple Silicon as experimental.
+
+### Docker Compose example
 ```yaml
-version: '3'
-
 services:
   notion-auto-ocr:
     image: michielvanbeers/notion-auto-ocr
@@ -32,46 +67,55 @@ services:
     environment:
       - NOTION_TOKEN=secret_12345678
       - DATABASE_ID=d82973h2kwldj20239e1
+      - OCR_PROVIDER=azure          # or ironocr
       - MICROSOFT_API_KEY=9834023jdsadlawdkwn
       - MICROSOFT_ENDPOINT=https://[YOUR_NAME].cognitiveservices.azure.com/
-      - SCAN_METHOD=checkbox 
-      - SCAN_FREQUENCY=15 # Optional
-      - DEBUG=True #Optional
+      - SCAN_METHOD=checkbox
+      - SCAN_FREQUENCY=15           # optional
+      - DEBUG=true                  # optional
 ```
 
 ### Environment variables
-* **NOTION_TOKEN**: API token to integrate with Notion. Don't forget to allow your intergration access to your database
-* **DATABASE_ID**: ID of the database that you want to scan
-* **MICROSOFT_API_KEY**: Key to access the Microsofy Computer Vision API
-* **MICROSOFT_ENDPOINT**: Url of your API end-point. Can be retrieved from the Azure Portal
-* **SCAN_METHOD**: Method used to scan page including new image to parse. Valid value is checkbox or createtime
-* **SCAN_FREQUENCY**: Optional parameter to set the frequency of scanning for new images to parse. Leave out to do a single run (recommended for testing)
-* **DEBUG**: Optional parameter to enable debug logs. Only for debuging purpose
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `NOTION_TOKEN` | Yes | — | Notion integration API token |
+| `DATABASE_ID` | Yes | — | ID of the Notion database to scan |
+| `SCAN_METHOD` | Yes | — | `checkbox` or `createtime` |
+| `OCR_PROVIDER` | No | `azure` | `azure` or `ironocr` |
+| `MICROSOFT_API_KEY` | If `OCR_PROVIDER=azure` | — | Azure Computer Vision API key |
+| `MICROSOFT_ENDPOINT` | If `OCR_PROVIDER=azure` | — | Azure Computer Vision endpoint URL |
+| `IRONOCR_LICENSE_KEY` | If `OCR_PROVIDER=ironocr` | — | IronOCR license key |
+| `SCAN_FREQUENCY` | No | — | Scan interval in minutes. Omit for a single run |
+| `DEBUG` | No | `false` | Set to `true` to enable debug logging |
 
 ## Usage
-The script checks if it can find the 'ocr_text' text in image caption or under an image. If it does, it will send the content of the image to Microsoft OCR API and replace the 'ocr_text' by the result in caption or add the result at the end of the current document. When the 'SCAN_FREQUENCY' environment variable is set, it will check if there are any new pages added since the last scan (through the use of setting timestamps).
-    
+
+Add `ocr_text` as the caption of any image block in a Notion page that belongs to your database. On the next scan the text will be extracted and the caption will be replaced with the OCR result (or a new paragraph block will be appended, depending on how you've configured your database).
+
+When `SCAN_FREQUENCY` is set the container loops indefinitely, rescanning at the given interval. Without it, the container performs one scan and exits — useful for testing or cron-based scheduling.
+
+## Version history
+
+| Tag | Runtime | Notes |
+|---|---|---|
+| `latest` / `v2` | C# .NET 10 | Current release — supports Azure and IronOCR |
+| `v1` | Python 3.10 | Legacy — Azure only, no new features |
+
 ## Creating a Microsoft API key
-This section assumes that you already have a Microsoft Azure account. To create your (free) API resource, take the following steps:
+
+This section assumes you already have a Microsoft Azure account.
+
 1. Go to https://portal.azure.com/
-2. Click `Create a resource`
-3. Search for `Computer Vision`
-4. Click on `Computer Vision`
-5. Click `Create`
-6. Set the following:
-    - Subscription
-    - Resource group (or create new one)
-    - Region (nearest region near you)
-    - Name (name of your liking)
-    - Pricing tier (Free F0)
-    - Click the terms checkbox
-7. Click `Review + create`
+2. Click **Create a resource** and search for **Computer Vision**
+3. Click **Create**
+4. Set Subscription, Resource group, Region, a Name of your choice, and **Pricing tier Free F0**
+5. Click **Review + create**
+
+The API key and endpoint URL are shown under **Keys and Endpoint** in the resource overview.
 
 ## Acknowledgements
-- This project is heavily inspired by [yannick-cw/notion-ocr](https://github.com/yannick-cw/notion-ocr)
-- Addition of SCAN_METHOD and all replacement in image caption has been developed by [Marc GUYARD](https://github.com/mguyard)
 
-## To-do
-- Refactor to OOB setup and different files for easier maintenance
-- Research possibility into making standalone executable using [PyInstaller](https://pyinstaller.org/en/stable/)
-- Research possibility to integrate into [Notion-Enhancer](https://notion-enhancer.github.io/)
+- Inspired by [yannick-cw/notion-ocr](https://github.com/yannick-cw/notion-ocr)
+- `SCAN_METHOD` and caption replacement by [Marc GUYARD](https://github.com/mguyard)
+- IronOCR integration sponsored by [IronSoftware](https://ironsoftware.com/)

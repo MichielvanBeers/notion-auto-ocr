@@ -1,0 +1,111 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build .NET Debug",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/src/NotionAutoOcr/NotionAutoOcr.csproj",
+        "-c",
+        "Debug"
+      ],
+      "group": "build",
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "docker-build: debug",
+      "type": "docker-build",
+      "dockerBuild": {
+        "context": "${workspaceFolder}",
+        "dockerfile": "${workspaceFolder}/Dockerfile",
+        "tag": "notion-auto-ocr:debug",
+        "pull": false
+      },
+      "netCore": {
+        "appProject": "${workspaceFolder}/src/NotionAutoOcr/NotionAutoOcr.csproj"
+      }
+    },
+    {
+      "label": "docker-run: debug-azure",
+      "type": "docker-run",
+      "dependsOn": [
+        "docker-build: debug"
+      ],
+      "dockerRun": {
+        "containerName": "notion-auto-ocr-debug-azure",
+        "image": "notion-auto-ocr:debug",
+        "env": {
+          "NOTION_TOKEN": "<your_notion_token>",
+          "DATABASE_ID": "<your_database_id>",
+          "SCAN_METHOD": "checkbox",
+          "OCR_PROVIDER": "azure",
+          "MICROSOFT_API_KEY": "<your_microsoft_api_key>",
+          "MICROSOFT_ENDPOINT": "https://<your-resource>.cognitiveservices.azure.com/",
+          "DEBUG": "true"
+        }
+      },
+      "netCore": {
+        "appProject": "${workspaceFolder}/src/NotionAutoOcr/NotionAutoOcr.csproj",
+        "enableDebugging": true
+      }
+    },
+    {
+      "label": "docker-run: debug-ironocr",
+      "type": "docker-run",
+      "dependsOn": [
+        "docker-build: debug"
+      ],
+      "dockerRun": {
+        "containerName": "notion-auto-ocr-debug-ironocr",
+        "image": "notion-auto-ocr:debug",
+        "env": {
+          "NOTION_TOKEN": "<your_notion_token>",
+          "DATABASE_ID": "<your_database_id>",
+          "SCAN_METHOD": "checkbox",
+          "OCR_PROVIDER": "ironocr",
+          "IRONOCR_LICENSE_KEY": "<your_ironocr_license_key>",
+          "DEBUG": "true"
+        }
+      },
+      "netCore": {
+        "appProject": "${workspaceFolder}/src/NotionAutoOcr/NotionAutoOcr.csproj",
+        "enableDebugging": true
+      }
+    },
+    {
+      "label": "Docker: Run (Azure)",
+      "type": "shell",
+      "command": "docker compose --profile azure up --build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Docker: Run (IronOCR, host arch; experimental on Apple Silicon)",
+      "type": "shell",
+      "command": "docker compose --profile ironocr up --build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Docker: Run (IronOCR Linux x64)",
+      "type": "shell",
+      "command": "DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose --profile ironocr up --build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}
