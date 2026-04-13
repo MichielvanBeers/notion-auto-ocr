@@ -184,6 +184,26 @@ public class NotionClientTests : IDisposable
         Assert.Empty(blocks);
     }
 
+    [Fact]
+    public async Task GetImageBlocks_ParagraphOcr_IgnoresNestedChildImageForPrecedingMatch()
+    {
+        var (client, handler) = CreateClient();
+        handler.SetupGet(
+            "https://api.notion.com/v1/blocks/page-nested/children?page_size=100",
+            ReadFixture("blocks-nested-scope-parent.json"));
+        handler.SetupGet(
+            "https://api.notion.com/v1/blocks/block-toggle-parent/children?page_size=100",
+            ReadFixture("blocks-nested-scope-child.json"));
+
+        var blocks = await client.GetImageBlocksInPageAsync("page-nested", CancellationToken.None);
+
+        Assert.Single(blocks);
+        var block = blocks[0];
+        Assert.Equal("https://example.com/image-parent.png", block.ImageUrl);
+        Assert.Equal("block-ocr-parent", block.OcrBlockId);
+        Assert.True(block.Ocr);
+    }
+
     // ── AppendTextToPageAsync ────────────────────────────────────────────────
 
     [Fact]

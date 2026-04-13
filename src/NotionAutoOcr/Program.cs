@@ -32,15 +32,12 @@ var host = Host.CreateDefaultBuilder(args)
         // Named HttpClient for image downloads — no auth headers leaking.
         services.AddHttpClient("notion-images");
 
-        // HttpClient for the Notion API — adds required headers via DelegatingHandler.
-        services.AddHttpClient<NotionClient>((sp, http) =>
+        // HttpClient for the Notion API — typed client exposed via interface.
+        services.AddHttpClient<INotionClient, NotionClient>((sp, http) =>
         {
             http.DefaultRequestHeaders.Add("Authorization", $"Bearer {config.NotionToken}");
             http.DefaultRequestHeaders.Add("Notion-Version", "2022-06-28");
         });
-
-        // Expose NotionClient as INotionClient for mockable dependency injection.
-        services.AddSingleton<INotionClient>(sp => sp.GetRequiredService<NotionClient>());
 
         // Select OCR provider based on config.
         if (config.OcrProvider == OcrProviderType.IronOcr)

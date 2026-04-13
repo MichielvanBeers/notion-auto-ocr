@@ -157,6 +157,7 @@ public class NotionClient(HttpClient http, Config config, ILogger<NotionClient> 
             ?? throw new InvalidOperationException($"Empty response for blocks of {pageId}.");
 
         var imageBlocks = new List<ImageBlock>();
+        var currentLevelImagesByIndex = new Dictionary<int, ImageBlock>();
 
         for (int index = 0; index < data.Results.Count; index++)
         {
@@ -202,7 +203,7 @@ public class NotionClient(HttpClient http, Config config, ILogger<NotionClient> 
                     }
                 }
 
-                imageBlocks.Add(new ImageBlock
+                var imageBlock = new ImageBlock
                 {
                     ImageUrl = imageUrl,
                     OcrBlockId = block.Id,
@@ -214,7 +215,10 @@ public class NotionClient(HttpClient http, Config config, ILogger<NotionClient> 
                         : null,
                     Caption = captionText,
                     Ocr = ocrEnabled,
-                });
+                };
+
+                imageBlocks.Add(imageBlock);
+                currentLevelImagesByIndex[index] = imageBlock;
             }
 
             if (block.Type == "paragraph" && block.Paragraph?.RichText is { Count: > 0 })
@@ -222,7 +226,7 @@ public class NotionClient(HttpClient http, Config config, ILogger<NotionClient> 
                 var plain = block.Paragraph.RichText[0].PlainText;
                 if (plain == "ocr_text")
                 {
-                    var preceding = imageBlocks.FirstOrDefault(b => b.ListIndex == index - 1);
+                    currentLevelImagesByIndex.TryGetValue(index - 1, out var preceding);
                     if (preceding is not null && preceding.Caption is null)
                     {
                         if (config.Debug)

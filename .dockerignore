@@ -3,6 +3,8 @@
 **/.git/
 .gitignore
 .dockerignore
+.env
+.env.*
 tests/
 *.md
 *.sln
