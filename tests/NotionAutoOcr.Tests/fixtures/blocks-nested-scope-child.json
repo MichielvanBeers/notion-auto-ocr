@@ -1,0 +1,23 @@
+{
+  "results": [
+    {
+      "id": "block-image-child",
+      "type": "image",
+      "has_children": false,
+      "image": {
+        "caption": [],
+        "file": { "url": "https://example.com/image-child.png" }
+      }
+    },
+    {
+      "id": "block-text-child",
+      "type": "paragraph",
+      "has_children": false,
+      "paragraph": {
+        "rich_text": [
+          { "plain_text": "just text" }
+        ]
+      }
+    }
+  ]
+}

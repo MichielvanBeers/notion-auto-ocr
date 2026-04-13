@@ -1,0 +1,19 @@
+{
+  "results": [
+    {
+      "id": "block-image-caption",
+      "type": "image",
+      "has_children": false,
+      "image": {
+        "caption": [
+          {
+            "type": "text",
+            "text": { "content": "ocr_text" },
+            "plain_text": "ocr_text"
+          }
+        ],
+        "file": { "url": "https://example.com/image-caption.png" }
+      }
+    }
+  ]
+}

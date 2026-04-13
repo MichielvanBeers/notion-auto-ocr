@@ -1,0 +1,14 @@
+**/bin/
+**/obj/
+**/.git/
+.gitignore
+.dockerignore
+.env
+.env.*
+tests/
+*.md
+*.sln
+entrypoint.sh
+app.py
+requirements.txt
+PLAN-ironocr-integration.md

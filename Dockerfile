@@ -1,12 +1,14 @@
-FROM python:3.10
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
 
-RUN apt-get update && apt-get -y install cron
+COPY src/NotionAutoOcr/NotionAutoOcr.csproj src/NotionAutoOcr/
+RUN dotnet restore src/NotionAutoOcr/NotionAutoOcr.csproj
 
-COPY . /app
+COPY . .
+RUN dotnet publish src/NotionAutoOcr/NotionAutoOcr.csproj -c Release -o /app/publish /p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
 WORKDIR /app
+COPY --from=build /app/publish .
 
-RUN pip install -r requirements.txt
-
-RUN chmod +x entrypoint.sh
-
-ENTRYPOINT ["sh","entrypoint.sh"]
+ENTRYPOINT ["dotnet", "NotionAutoOcr.dll"]

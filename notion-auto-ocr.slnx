@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/NotionAutoOcr/NotionAutoOcr.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/NotionAutoOcr.Tests/NotionAutoOcr.Tests.csproj" />
+  </Folder>
+</Solution>
