@@ -38,3 +38,7 @@ docker-compose*.yml
 *.core
 qemu_dotnet_*.core
 core
+
+# Planning docs (local implementation notes)
+PLAN-*.md
+BETA-*-ROLLOUT.md
